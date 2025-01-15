@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Available Quizzes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+        }
+        .container {
+            text-align: center;
+        }
+        h2 {
+            color: #333;
+        }
+        p {
+            font-size: 1.2em;
+        }
+        button {
+            background-color:rgb(35, 42, 130);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2em;
+        }
+        button:hover {
+            background-color:rgb(47, 190, 185);
+            color: black;
+        }
+    </style>
+</head>
+<body>
+    <h2>Available Quizzes</h2>
+    <ul>
+        {% for quiz in quizzes %}
+            <li>
+                <h3><a href="{% url 'quiz_detail' quiz.id %}">{{ quiz.name }}</a></h3>
+                <p>{{ quiz.description }}</p>
+            </li>
+
+            <div>
+                <a href="{% url 'leaderboard' quiz.id %}">
+                    <button>View Leaderboard</button>
+                </a>
+            </div>
+        {% empty %}
+            <li>No quizzes available.</li>
+        {% endfor %}
+    </ul>
+    <button class="btn" onclick="window.location.href='{% url 'sign_out' %}'">Sign Out</button>
+</body>
+</html>
+<ul>
+    
+    

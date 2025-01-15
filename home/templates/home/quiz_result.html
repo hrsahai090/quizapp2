@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ quiz.name }} - Result</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+        }
+        .container {
+            text-align: center;
+        }
+        h2 {
+            color: #333;
+        }
+        p {
+            font-size: 1.2em;
+        }
+        button {
+            background-color:rgb(35, 42, 130);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2em;
+        }
+        button:hover {
+            background-color:rgb(47, 190, 185);
+            color: black;
+        }
+    </style>
+</head>
+<body>
+    <h2>{{ quiz.name }} - Your Result</h2>
+    <p>Your score: {{ score }}</p>
+    <p>Attempt Number: {{ attempt_number }} / {{ quiz.max_attempts }}</p>
+    <a href="{% url 'quiz_list' %}">
+        <button>Go Back to Quiz List</button>
+    </a>
+</body>
+</html>
