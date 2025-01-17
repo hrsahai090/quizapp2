@@ -46,6 +46,7 @@ def register(request):
         return render(request, 'home/register.html', {'form': form})
     
     if request.method == 'POST':
+        
         form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save(commit=False)
