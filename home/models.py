@@ -70,10 +70,10 @@ class Option(models.Model):
          return f"{self.option}"
         
 class QuizAttempt(models.Model):
-    STATUS_CHOICES = (
+    STATUS_CHOICES = [
         ('IN_PROGRESS', 'In Progress'),
         ('COMPLETED', 'Completed'),
-    )
+    ]
     id = models.UUIDField(primary_key=True,default= uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='quiz_user')
     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='quiz_question')
@@ -87,4 +87,19 @@ class QuizAttempt(models.Model):
     def __str__(self):
         return f"Attempt {self.attempt_number} by {self.user} for {self.quiz}"
 
+class LogInfo(models.Model):
+    LEVEL_CHOICES = [
+        ('DEBUG', 'Debug'),
+        ('INFO', 'Info'),
+        ('WARNING', 'Warning'),
+        ('ERROR', 'Error'),
+        ('CRITICAL', 'Critical'),
+    ]
     
+    message = models.TextField()
+    level = models.CharField(max_length=10, choices=LEVEL_CHOICES)
+    created_at = models.DateTimeField(auto_now_add=True)
+    view_name = models.CharField(max_length=255, blank=True, null=True)
+
+    def __str__(self):
+        return f"[{self.level}] {self.message[:50]}"

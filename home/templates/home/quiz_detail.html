@@ -88,39 +88,30 @@
     {% endif %}
 
     <script>
-        let durationString = "{{ quiz.duration }}";
-        let totalTime = 0;
-
-        if (durationString) {
-            let timeParts = durationString.split(':');
-            if (timeParts.length === 3) {
-                // Convert time to seconds: HH * 3600 + MM * 60 + SS
-                totalTime = parseInt(timeParts[0]) * 3600 + parseInt(timeParts[1]) * 60 + parseInt(timeParts[2]);
-            }
-        }
         let timerElement = document.getElementById('time');
-        let timeLeft = totalTime;
+        let quizAttemptId = "{{ quiz_attempt.id }}"; 
         let timer;
 
-        // Function to start the timer
-        function startTimer() {
-            timer = setInterval(function() {
-                if (timeLeft <= 0) {
-                    clearInterval(timer);
-                    alert('Time is up!');
-                    document.querySelector('form').submit();
-                } else {
-                    let minutes = Math.floor(timeLeft / 60);
-                    let seconds = timeLeft % 60;
-                    timerElement.innerText = `Time left: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-                    timeLeft--;
-                }
-            }, 1000);
+        function updateTimer() {
+            fetch(`/quiz/${quizAttemptId}/remaining_time/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.time_left <= 0) {
+                        clearInterval(timer);
+                        alert("Time's up!");
+                        window.location.href = "/quiz/{{ quiz.id }}/time_up/";
+                    } else {
+                        let minutes = Math.floor(data.time_left / 60);
+                        let seconds = data.time_left % 60;
+                        timerElement.innerText = `Time left: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+                    }
+                });
         }
-
+    
         window.onload = function() {
-            startTimer();
-        }
+            updateTimer();
+            timer = setInterval(updateTimer, 1000);  
+        };
     </script>
     
 </body>

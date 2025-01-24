@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time's Up!</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 1.2em;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: rgb(47, 190, 185);
+            color: black;
+        }
+    </style>
+</head>
+<body>
+    <h1>Time's Up!</h1>
+    <p>Your time for the quiz has expired.</p>
+
+    <button onclick="window.location.href='/quiz/{{ quiz.id }}/result/'">View Results</button>
+    <button onclick="window.location.href='/quiz_list/'">Back to Quiz List</button>
+</body>
+</html>

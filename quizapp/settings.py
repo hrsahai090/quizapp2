@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 
 from pathlib import Path
 import os
+import logging
+from home.models import LogInfo
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -23,9 +25,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-p=$q0%b*5uy9!=qg+aw%n*!0tob($gi6js2ubg9_q3vet5w^vs'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 
 # Application definition
@@ -37,9 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'home.apps.HomeConfig', 
-    # 'quizapp.home',
-
+    'home', 
 ]
 
 MIDDLEWARE = [
@@ -78,18 +78,18 @@ WSGI_APPLICATION = 'quizapp.wsgi.application'
 
 DATABASES = {
     
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.sqlite3',
-    #     'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    # }
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': os.getenv('POSTGRES_DB', ''),
-        'USER': os.getenv('POSTGRES_USER', ''),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
-        'HOST': os.getenv('POSTGRES_HOST', ''),
-        'PORT': os.getenv('POSTGRES_PORT', '5432'),
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.postgresql_psycopg2',
+    #     'NAME': os.getenv('POSTGRES_DB', ''),
+    #     'USER': os.getenv('POSTGRES_USER', ''),
+    #     'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
+    #     'HOST': os.getenv('POSTGRES_HOST', ''),
+    #     'PORT': os.getenv('POSTGRES_PORT', '5432'),
+    # }
 }
 
 # Password validation
@@ -138,6 +138,18 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = "home.User"
 
+class DatabaseLogHandler(logging.Handler):
+    def emit(self, record):
+        try:
+            log_entry = LogInfo(
+                message=self.format(record),
+                level=record.levelname,
+                view_name=record.name
+            )
+            log_entry.save()
+        except Exception as e:
+            print(f"Error saving log to database: {e}")
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -145,6 +157,10 @@ LOGGING = {
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
+        },
+        'db':{
+            'level': 'DEBUG',
+            'class': 'quizapp.logging.DatabaseLogHandler',
         },
         'file':{
             'level': 'DEBUG',

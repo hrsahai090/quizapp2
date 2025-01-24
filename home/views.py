@@ -11,11 +11,13 @@ from django.contrib.auth.decorators import login_required
 from django.views.generic import UpdateView, DeleteView, CreateView
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
+from datetime import timedelta
+from django.http import JsonResponse
 import logging 
 
 logger = logging.getLogger(__name__)
 
-@csrf_exempt
+# @csrf_exempt
 
 def main_page(request):
     try:
@@ -98,90 +100,90 @@ def register(request):
         return redirect('main_page')
         
         
-@method_decorator(login_required, name='dispatch')
-class QuizCreateView(CreateView):
-    model = Quiz
-    form_class = QuizForm
-    template_name = ''
-    success_url = reverse_lazy('quiz_list')
+# @method_decorator(login_required, name='dispatch')
+# class QuizCreateView(CreateView):
+#     model = Quiz
+#     form_class = QuizForm
+#     template_name = ''
+#     success_url = reverse_lazy('quiz_list')
     
-    def form_valid(self, form):
+#     def form_valid(self, form):
         
-        try:
-            form.instance.created_by = self.request.user  
-            messages.success(self.request, "Quiz created successfully!")
-            logger.info(f"Quiz created successfully by {self.request.user.username}.")
-            return super().form_valid(form) 
+#         try:
+#             form.instance.created_by = self.request.user  
+#             messages.success(self.request, "Quiz created successfully!")
+#             logger.info(f"Quiz created successfully by {self.request.user.username}.")
+#             return super().form_valid(form) 
         
-        except Exception as e:
-            logger.error(f"Error creating quiz: {e}")
-            messages.error(self.request, 'An error occurred during quiz creation.')
-            return redirect('quiz_list')
+#         except Exception as e:
+#             logger.error(f"Error creating quiz: {e}")
+#             messages.error(self.request, 'An error occurred during quiz creation.')
+#             return redirect('quiz_list')
     
-@method_decorator(login_required, name='dispatch')
-class QuizUpdateView(UpdateView):
-    model = Quiz
-    form_class = QuizForm
-    template_name = ''
-    context_object_name = 'quiz'
+# @method_decorator(login_required, name='dispatch')
+# class QuizUpdateView(UpdateView):
+#     model = Quiz
+#     form_class = QuizForm
+#     template_name = ''
+#     context_object_name = 'quiz'
 
-    def get_queryset(self):
-        return Quiz.objects.filter(is_deleted=False)
+#     def get_queryset(self):
+#         return Quiz.objects.filter(is_deleted=False)
 
-    def form_valid(self, form):
+#     def form_valid(self, form):
         
-        try:
-            form.instance.updated_by = self.request.user 
-            messages.success(self.request, "Quiz updated successfully!")
-            logger.info(f"Quiz updated successfully by {self.request.user.username}.")
-            return super().form_valid(form)
+#         try:
+#             form.instance.updated_by = self.request.user 
+#             messages.success(self.request, "Quiz updated successfully!")
+#             logger.info(f"Quiz updated successfully by {self.request.user.username}.")
+#             return super().form_valid(form)
         
-        except Exception as e:
-            logger.error(f"Error updating quiz: {e}")
-            messages.error(self.request, 'An error occurred during updating quiz.')
-            return redirect('quiz_list')
+#         except Exception as e:
+#             logger.error(f"Error updating quiz: {e}")
+#             messages.error(self.request, 'An error occurred during updating quiz.')
+#             return redirect('quiz_list')
     
-@method_decorator(login_required, name='dispatch')
-class QuizDeleteView(DeleteView):
-    model = Quiz
-    template_name = ''
-    context_object_name = 'quiz'
-    success_url = reverse_lazy('quiz_list')  
+# @method_decorator(login_required, name='dispatch')
+# class QuizDeleteView(DeleteView):
+#     model = Quiz
+#     template_name = ''
+#     context_object_name = 'quiz'
+#     success_url = reverse_lazy('quiz_list')  
 
-    def get_queryset(self):
-        #non-deleted quizzes
-        return Quiz.objects.filter(is_deleted=False)
+#     def get_queryset(self):
+#         #non-deleted quizzes
+#         return Quiz.objects.filter(is_deleted=False)
 
-    def delete(self, request, *args, **kwargs):
+#     def delete(self, request, *args, **kwargs):
         
-        try:
-            quiz = self.get_object()
-            quiz.is_deleted = True
-            quiz.save()
-            messages.success(self.request, "Quiz deleted successfully!")
-            logger.info(f"Quiz '{quiz.name}' deleted successfully by {self.request.user.username}.")
-            return redirect(self.success_url)
+#         try:
+#             quiz = self.get_object()
+#             quiz.is_deleted = True
+#             quiz.save()
+#             messages.success(self.request, "Quiz deleted successfully!")
+#             logger.info(f"Quiz '{quiz.name}' deleted successfully by {self.request.user.username}.")
+#             return redirect(self.success_url)
         
-        except Exception as e:
-            logger.error(f"Error deleting quiz: {e}")
-            messages.error(self.request, 'An error occurred during deleting a quiz.')
-            return redirect('quiz_list')
+#         except Exception as e:
+#             logger.error(f"Error deleting quiz: {e}")
+#             messages.error(self.request, 'An error occurred during deleting a quiz.')
+#             return redirect('quiz_list')
     
-@login_required
-def restore_quiz(request, id):
+# @login_required
+# def restore_quiz(request, id):
     
-    try:
-        quiz = get_object_or_404(Quiz, id=id, is_deleted=True)
-        quiz.is_deleted = False
-        quiz.save()
-        messages.success(request, f"Quiz '{quiz.name}' has been restored.")
-        logger.info(f"Quiz '{quiz.name}' restored successfully by {request.user.username}.")
-        return redirect('quiz_list')
+#     try:
+#         quiz = get_object_or_404(Quiz, id=id, is_deleted=True)
+#         quiz.is_deleted = False
+#         quiz.save()
+#         messages.success(request, f"Quiz '{quiz.name}' has been restored.")
+#         logger.info(f"Quiz '{quiz.name}' restored successfully by {request.user.username}.")
+#         return redirect('quiz_list')
     
-    except Exception as e:
-        logger.error(f"Error restoring quiz: {e}")
-        messages.error(request, 'An error occurred while restoring the quiz.')
-        return redirect('quiz_list')
+#     except Exception as e:
+#         logger.error(f"Error restoring quiz: {e}")
+#         messages.error(request, 'An error occurred while restoring the quiz.')
+#         return redirect('quiz_list')
 
 @login_required
 def quiz_list(request):
@@ -195,53 +197,67 @@ def quiz_list(request):
         messages.error(request, 'An error occurred while loading the quiz list.')
         return redirect('main_page')
 
-#quiz details
 @login_required
 def quiz_detail(request, id):
-    
     try:
         quiz = get_object_or_404(Quiz, id=id, is_deleted=False)
-    
-        quiz_attempts = QuizAttempt.objects.filter(user=request.user, quiz=quiz).count()
-    
-        if quiz_attempts >= quiz.max_attempts:
-            messages.error(request,f"You have reached the maximum number of attempts ({quiz.max_attempts}) for this quiz.")
-            return render(request, 'home/quiz_limit_reached.html',{'quiz': quiz})
-    
-        if quiz_attempts<quiz.max_attempts:  
-            if request.method == 'POST':
-                score = 0
-                for question in quiz.questions.all():
-                    user_answer = request.POST.get(f'question_{question.id}')
-                    if user_answer:
-                        if question.type == 'MCQ': 
-                            is_correct = question.option_set.get(id=user_answer).is_correct
-                            if is_correct:
-                                score += question.score  
-                
-                        elif question.type == 'OPEN': 
-                            if user_answer.strip().lower() == question.answer.strip().lower():
-                                score += question.score 
-                            
-                attempt_number = quiz_attempts +1
-                QuizAttempt.objects.create(
-                    user=request.user,
-                    quiz=quiz,
-                    attempt_number=attempt_number,
-                    score=score,
-                    status='COMPLETED',
-                    completed_at=timezone.now()
-                )
+
+        quiz_attempt = QuizAttempt.objects.filter(user=request.user, quiz=quiz, status='IN_PROGRESS').first()
+
+        if quiz_attempt:
             
-                return render(request, 'home/quiz_result.html', {'score': score, 'attempt_number': attempt_number, 'quiz': quiz})
-    
-        return render(request, 'home/quiz_detail.html', {'quiz': quiz})
-    
+            time_left = quiz_attempt.started_at + quiz.duration - timezone.now()
+
+            if time_left <= timedelta(seconds=0):
+                quiz_attempt.status = 'COMPLETED'
+                quiz_attempt.completed_at = timezone.now()
+                quiz_attempt.save()
+                return redirect('quiz_time_up', id=id) 
+        else:
+            quiz_attempt = QuizAttempt.objects.create(
+                user=request.user,
+                quiz=quiz,
+                attempt_number=1,
+                status='IN_PROGRESS',
+                started_at=timezone.now()
+            )
+        
+        return render(request, 'home/quiz_detail.html', {'quiz': quiz, 'quiz_attempt': quiz_attempt})
+
     except Exception as e:
         logger.error(f"Error viewing quiz details: {e}")
         messages.error(request, 'An error occurred while loading the quiz details.')
         return redirect('quiz_list')
+    
+    
+@login_required
+def remaining_time(request, attempt_id):
+    try:
+        quiz_attempt = get_object_or_404(QuizAttempt, id=attempt_id, user=request.user)
+        time_left = quiz_attempt.started_at + quiz_attempt.quiz.duration - timezone.now()
 
+        # Calculate remaining time in seconds
+        remaining_seconds = max(0, int(time_left.total_seconds()))
+
+        return JsonResponse({'time_left': remaining_seconds})
+
+    except Exception as e:
+        logger.error(f"Error fetching remaining time: {e}")
+        return JsonResponse({'error': 'Could not fetch remaining time.'}, status=500)
+
+
+@login_required
+def quiz_time_up(request, id):
+    try:
+        quiz = get_object_or_404(Quiz, id=id, is_deleted=False)
+        return render(request, 'home/time_up.html', {'quiz': quiz})
+
+    except Exception as e:
+        logger.error(f"Error loading time's up page: {e}")
+        messages.error(request, 'An error occurred.')
+        return redirect('quiz_list')
+    
+    
 @login_required
 def leaderboard(request, id):
     
