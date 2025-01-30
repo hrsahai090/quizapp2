@@ -1,0 +1,93 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ quiz.name }}</title>
+    <link rel="stylesheet" href="{% static 'css/quiz_take_up.css' %}">
+</head>
+<body>
+    <h2>{{ quiz.name }}</h2>
+    <p>{{ quiz.description }}</p>
+
+    <!-- Display timer -->
+    <div class="timer" id="time">Time left: 00:00</div>
+
+    <form method="POST" id="quizForm">
+        {% csrf_token %}
+        <h3>Quiz Questions</h3>
+
+        {% for question in quiz.questions.all %}
+            <div class="question">
+                <p>{{ question.question }}</p>
+
+                {% if question.type == 'MCQ' %}
+                    <div class="options">
+                        {% for option in question.option_set.all %}
+                            <input type="radio" name="question_{{ question.id }}" value="{{ option.id }}">
+                            <label>{{ option }}</label>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <textarea name="question_{{ question.id }}"></textarea>
+                {% endif %}
+            </div>
+        {% endfor %}
+
+        <button type="submit">Submit Quiz</button>
+    </form>
+
+    <script>
+        console.log("called");
+        let quizAttemptId = "{{ quiz_attempt.id }}";
+        let timerElement = document.getElementById('time');
+        console.log("timer", quizAttemptId)
+        function checkTimerStatus() {
+            fetch(`/check_timer/${quizAttemptId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'expired') {
+                        alert(`Time's up! ${data.redirect_url}`);
+                        window.location.href = `http://127.0.0.1:8000/${data.redirect_url}`;  // Redirect to the result page
+                    } else if (data.status === 'ongoing') {
+                        let minutes = data.time_left.minutes;
+                        let seconds = data.time_left.seconds;
+                        timerElement.innerText = `Time left: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+                    } else {
+                        console.error('Timer Error:', data.message);
+                    }
+                })
+                .catch(error => console.error('Fetch Error:', error));
+        }
+
+        setInterval(checkTimerStatus, 1000);  // Update timer every second
+
+        {% comment %} document.getElementById("quizForm").addEventListener("submit", function (event) {
+            let isAnswered = true;
+
+            {% for question in quiz.questions.all %}
+                let questionId = "{{ question.id }}";
+                let questionType = "{{ question.type }}";
+
+                if (questionType === 'MCQ') {
+                    let selectedOption = document.querySelector(`input[name="question_${questionId}"]:checked`);
+                    if (!selectedOption) {
+                        isAnswered = false;
+                    }
+                } else {
+                    let textAnswer = document.querySelector(`textarea[name="question_${questionId}"]`);
+                    if (!textAnswer.value.trim()) {
+                        isAnswered = false;
+                    }
+                }
+            {% endfor %}
+
+            if (!isAnswered) {
+                event.preventDefault();
+                alert("Please answer all the questions before submitting the quiz.");
+            }
+        }); {% endcomment %}
+    </script>
+</body>
+</html>

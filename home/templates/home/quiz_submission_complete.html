@@ -1,0 +1,21 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Submission Complete</title>
+</head>
+<body>
+    <h2>{{ quiz.name }} - Submission Complete</h2>
+    <p>Congratulations on completing the quiz!</p>
+
+    <form action="{% url 'quiz_result' id=quiz.id %}" method="get">
+        <button type="submit">View Quiz Results</button>
+    </form>
+
+    <form action="{% url 'quiz_list' %}" method="get">
+        <button type="submit">Back to Quiz List</button>
+    </form>
+</body>
+</html>

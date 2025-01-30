@@ -221,7 +221,7 @@ class Migration(migrations.Migration):
             ),
         ),
         migrations.CreateModel(
-            name="QuizAttempt",
+            name="QuizSession",
             fields=[
                 (
                     "id",

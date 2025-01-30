@@ -28,7 +28,7 @@ class Quiz(models.Model):
     id = models.UUIDField(primary_key=True,default= uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)
-    duration = models.DurationField(help_text="in minutes")
+    duration = models.DurationField(help_text="Duration in HH:MM:SS format")
     max_attempts = models.PositiveIntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now_add=True)
@@ -37,6 +37,9 @@ class Quiz(models.Model):
     
     def __str__(self):
         return self.name
+    
+    def get_duration_in_minutes(self):
+        return int(self.duration.total_seconds() // 60)
     
 class Questions(models.Model):
     QUESTION_TYPES=[
@@ -84,8 +87,26 @@ class QuizAttempt(models.Model):
     completed_at = models.DateTimeField(null=True, blank=True)
     is_deleted = models.BooleanField(default = False)
 
+    def save(self, *args, **kwargs):
+        if not self.completed_at and self.quiz.duration:
+            self.completed_at = self.started_at + self.quiz.duration
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"Attempt {self.attempt_number} by {self.user} for {self.quiz}"
+
+class QuizAnswer(models.Model):
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    session = models.ForeignKey(QuizAttempt, on_delete=models.CASCADE, related_name='answers')
+    questions = models.ForeignKey(Questions, on_delete=models.CASCADE, related_name='quiz_questions')
+    selected_option = models.ForeignKey(Option, on_delete=models.SET_NULL, null=True, blank=True, related_name='selected_answers')
+    typed_answer = models.TextField(null=True, blank=True) 
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Answer for {self.question} in session {self.session.id}"
 
 class LogInfo(models.Model):
     LEVEL_CHOICES = [
