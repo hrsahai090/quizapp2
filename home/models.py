@@ -106,7 +106,7 @@ class QuizAnswer(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Answer for {self.question} in session {self.session.id}"
+        return f"Answer for {self.questions} in session {self.session.id}"
 
 class LogInfo(models.Model):
     LEVEL_CHOICES = [

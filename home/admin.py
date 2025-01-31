@@ -8,14 +8,12 @@ class LogInfoAdmin(admin.ModelAdmin):
     ordering = ['-created_at'] 
     
 admin.site.register(LogInfo,LogInfoAdmin)
-
 admin.site.register(Quiz)
 admin.site.register(Questions) 
 class OptionAdmin(admin.ModelAdmin):
     list_display = ('option', 'question', 'is_correct', 'created_at', 'updated_at')
     search_fields = ('option',)
     list_filter = ('is_correct',)
-
 #filter mcq type questions
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "question":
@@ -23,5 +21,4 @@ class OptionAdmin(admin.ModelAdmin):
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 admin.site.register(Option, OptionAdmin)
-
 admin.site.register(User)

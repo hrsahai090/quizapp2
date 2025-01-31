@@ -51,7 +51,6 @@ def log_in(request):
       
 
 def register(request):
-    
     try:
         if request.method == 'GET':
             form = RegisterForm()
@@ -202,57 +201,6 @@ def check_quiz_timer(request, id):
     except QuizAttempt.DoesNotExist:
         return JsonResponse({'status': 'error', 'message': 'Quiz attempt not found.'})
 
-
-# @login_required
-# def quiz_result(request, id):
-#     try:
-        
-#         quiz = get_object_or_404(Quiz, id=id)
-
-#         quiz_attempts = QuizAttempt.objects.filter(quiz=quiz, user=request.user, status='COMPLETED').order_by('-completed_at')
-        
-#         if quiz_attempts.exists():
-#             quiz_attempt = quiz_attempts.first() 
-#         else:
-#             messages.error(request, "No completed attempts found for this quiz.")
-#             return redirect('quiz_list')
-
-#         quiz_answers = QuizAnswer.objects.filter(session=quiz_attempt)
-
-#         score = 0
-#         for answer in quiz_answers:
-#             if answer.questions.type == 'MCQ':
-#                 if answer.selected_option.is_correct:
-#                     score += answer.questions.score
-#             elif answer.questions.type == 'OPEN':
-#                 correct_answer = answer.questions.answer.strip().lower()
-#                 user_answer = answer.typed_answer.strip().lower()
-#                 if correct_answer == user_answer:
-#                     score += answer.questions.score
-
-#         attempt_number = QuizAttempt.objects.filter(user=request.user, quiz=quiz).count()
-#         max_attempts = quiz.max_attempts
-
-#         if attempt_number > max_attempts:
-#             messages.error(request, "You have reached the maximum number of attempts for this quiz.")
-#             return render(request, 'home/quiz_result.html', {
-#                 'quiz': quiz,
-#                 'score': score,
-#                 'attempt_number': attempt_number,
-#                 'max_attempts_reached': True,
-#             })
-
-#         return render(request, 'home/quiz_result.html', {
-#             'quiz': quiz,
-#             'score': score,
-#             'attempt_number': attempt_number,
-#             'max_attempts_reached': False,
-#         })
-    
-#     except Exception as e:
-#         logger.error(f"Error in quiz_result view: {e}")
-#         messages.error(request, "An error occurred while processing your result. Please try again.")
-#         return redirect('quiz_list')
     
 @login_required
 def quiz_result(request, id):
