@@ -20,6 +20,8 @@
 
         {% for question in quiz.questions.all %}
             <div class="question">
+
+                
                 <p>{{ question.question }}</p>
 
                 {% if question.type == 'MCQ' %}
@@ -39,17 +41,23 @@
     </form>
 
     <script>
-        console.log("called");
         let quizAttemptId = "{{ quiz_attempt.id }}";
         let timerElement = document.getElementById('time');
-        console.log("timer", quizAttemptId)
+        let timerInterval;
+    
         function checkTimerStatus() {
             fetch(`/check_timer/${quizAttemptId}/`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'expired') {
-                        alert(`Time's up! ${data.redirect_url}`);
-                        window.location.href = `http://127.0.0.1:8000/${data.redirect_url}`;  // Redirect to the result page
+                        clearInterval(timerInterval);
+                        alert("Time's up! Submitting your quiz...");
+    
+                        let quizForm = document.getElementById('quizForm');
+                        if (quizForm) {
+                            quizForm.submit();  
+                        }
+                        
                     } else if (data.status === 'ongoing') {
                         let minutes = data.time_left.minutes;
                         let seconds = data.time_left.seconds;
@@ -60,34 +68,26 @@
                 })
                 .catch(error => console.error('Fetch Error:', error));
         }
-
-        setInterval(checkTimerStatus, 1000);  // Update timer every second
-
-        {% comment %} document.getElementById("quizForm").addEventListener("submit", function (event) {
-            let isAnswered = true;
-
-            {% for question in quiz.questions.all %}
-                let questionId = "{{ question.id }}";
-                let questionType = "{{ question.type }}";
-
-                if (questionType === 'MCQ') {
-                    let selectedOption = document.querySelector(`input[name="question_${questionId}"]:checked`);
-                    if (!selectedOption) {
-                        isAnswered = false;
-                    }
-                } else {
-                    let textAnswer = document.querySelector(`textarea[name="question_${questionId}"]`);
-                    if (!textAnswer.value.trim()) {
-                        isAnswered = false;
-                    }
+    
+        timerInterval = setInterval(checkTimerStatus, 1000);
+    
+        // Prevent form submission if no answer is given
+        document.getElementById('quizForm').addEventListener('submit', function(event) {
+            let answered = false;
+            let inputs = document.querySelectorAll('input[type="radio"]:checked, textarea');
+    
+            inputs.forEach(input => {
+                if (input.value.trim() !== "") {
+                    answered = true;
                 }
-            {% endfor %}
-
-            if (!isAnswered) {
-                event.preventDefault();
-                alert("Please answer all the questions before submitting the quiz.");
+            });
+    
+            if (!answered) {
+                event.preventDefault();  // Prevent form submission
+                console.log("Please answer at least one question before submitting.");
+                alert("Please answer at least one question before submitting.");
             }
-        }); {% endcomment %}
-    </script>
+        });
+    </script>    
 </body>
 </html>

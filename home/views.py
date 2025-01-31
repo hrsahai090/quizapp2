@@ -21,6 +21,7 @@ def main_page(request):
         messages.error(request, 'An error occurred while loading the page.')
         return redirect('main_page')
 
+
 def log_in(request):
     
     try:           
@@ -48,18 +49,7 @@ def log_in(request):
         messages.error(request, 'An error occurred during login.')
         return redirect('log_in')
       
-def sign_out(request):
-    try:
-        logout(request)
-        messages.success(request,f'You have been logged out.')
-        logger.info(f"User {request.user.username} logged out.")
-        return redirect('log_in')   
-     
-    except Exception as e:
-        logger.error(f"Error during login: {e}")
-        messages.error(request, 'An error occurred during logout.')
-        return redirect('main_page')
-    
+
 def register(request):
     
     try:
@@ -89,6 +79,19 @@ def register(request):
         messages.error(request, 'An error occurred during registration.')
         return redirect('main_page')
         
+def sign_out(request):
+    try:
+        logout(request)
+        messages.success(request,f'You have been logged out.')
+        logger.info(f"User {request.user.username} logged out.")
+        return redirect('log_in')   
+     
+    except Exception as e:
+        logger.error(f"Error during login: {e}")
+        messages.error(request, 'An error occurred during logout.')
+        return redirect('main_page')
+
+
 @login_required
 def quiz_list(request):
     
@@ -101,11 +104,16 @@ def quiz_list(request):
         messages.error(request, 'An error occurred while loading the quiz list.')
         return redirect('main_page')
 
+
 @login_required
 def quiz_take_up(request, id):
     try:
-        
         quiz = get_object_or_404(Quiz, id=id, is_deleted=False)
+
+        # Check if the quiz has no questions
+        if not quiz.questions.exists():
+            messages.warning(request, "This quiz has no questions. Please select another quiz.")
+            return render(request, 'home/no_questions.html', {'quiz': quiz})  
 
         previous_attempts = QuizAttempt.objects.filter(user=request.user, quiz=quiz).count()
         if previous_attempts >= quiz.max_attempts:
@@ -115,7 +123,6 @@ def quiz_take_up(request, id):
         quiz_attempt = QuizAttempt.objects.filter(user=request.user, quiz=quiz, status="IN_PROGRESS").first()
 
         if not quiz_attempt:
-    
             quiz_attempt = QuizAttempt.objects.create(
                 user=request.user,
                 quiz=quiz,
@@ -124,31 +131,26 @@ def quiz_take_up(request, id):
                 started_at=now(), 
             )
 
-        
         if request.method == 'POST':
             score = 0
             for question in quiz.questions.all():
                 user_answer = request.POST.get(f"question_{question.id}")
 
                 if question.type == 'MCQ':
-                    
                     selected_option = Option.objects.get(id=user_answer)
                     QuizAnswer.objects.create(
                         session=quiz_attempt,
                         questions=question,
                         selected_option=selected_option
                     )
-                    
                     if selected_option.is_correct:
                         score += question.score
                 else:
-                    
                     QuizAnswer.objects.create(
                         session=quiz_attempt,
                         questions=question,
                         typed_answer=user_answer
                     )
-                    
                     correct_answer = question.answer.strip().lower()
                     if correct_answer == user_answer.strip().lower():
                         score += question.score
@@ -169,58 +171,6 @@ def quiz_take_up(request, id):
     except Exception as e:
         logger.error(f"Error starting quiz: {e}")
         messages.error(request, "An error occurred while starting the quiz. Please try again.")
-        return redirect('quiz_list')
-
-
-@login_required
-def quiz_result(request, id):
-    try:
-        
-        quiz = get_object_or_404(Quiz, id=id)
-
-        quiz_attempts = QuizAttempt.objects.filter(quiz=quiz, user=request.user, status='COMPLETED').order_by('-completed_at')
-        
-        if quiz_attempts.exists():
-            quiz_attempt = quiz_attempts.first() 
-        else:
-            messages.error(request, "No completed attempts found for this quiz.")
-            return redirect('quiz_list')
-
-        quiz_answers = QuizAnswer.objects.filter(session=quiz_attempt)
-
-        score = 0
-        for answer in quiz_answers:
-            if answer.questions.type == 'MCQ':
-                if answer.selected_option.is_correct:
-                    score += answer.questions.score
-            elif answer.questions.type == 'OPEN':
-                correct_answer = answer.questions.answer.strip().lower()
-                user_answer = answer.typed_answer.strip().lower()
-                if correct_answer == user_answer:
-                    score += answer.questions.score
-
-        attempt_number = QuizAttempt.objects.filter(user=request.user, quiz=quiz).count()
-        max_attempts = quiz.max_attempts
-
-        if attempt_number > max_attempts:
-            messages.error(request, "You have reached the maximum number of attempts for this quiz.")
-            return render(request, 'home/quiz_result.html', {
-                'quiz': quiz,
-                'score': score,
-                'attempt_number': attempt_number,
-                'max_attempts_reached': True,
-            })
-
-        return render(request, 'home/quiz_result.html', {
-            'quiz': quiz,
-            'score': score,
-            'attempt_number': attempt_number,
-            'max_attempts_reached': False,
-        })
-    
-    except Exception as e:
-        logger.error(f"Error in quiz_result view: {e}")
-        messages.error(request, "An error occurred while processing your result. Please try again.")
         return redirect('quiz_list')
 
 
@@ -251,6 +201,96 @@ def check_quiz_timer(request, id):
 
     except QuizAttempt.DoesNotExist:
         return JsonResponse({'status': 'error', 'message': 'Quiz attempt not found.'})
+
+
+# @login_required
+# def quiz_result(request, id):
+#     try:
+        
+#         quiz = get_object_or_404(Quiz, id=id)
+
+#         quiz_attempts = QuizAttempt.objects.filter(quiz=quiz, user=request.user, status='COMPLETED').order_by('-completed_at')
+        
+#         if quiz_attempts.exists():
+#             quiz_attempt = quiz_attempts.first() 
+#         else:
+#             messages.error(request, "No completed attempts found for this quiz.")
+#             return redirect('quiz_list')
+
+#         quiz_answers = QuizAnswer.objects.filter(session=quiz_attempt)
+
+#         score = 0
+#         for answer in quiz_answers:
+#             if answer.questions.type == 'MCQ':
+#                 if answer.selected_option.is_correct:
+#                     score += answer.questions.score
+#             elif answer.questions.type == 'OPEN':
+#                 correct_answer = answer.questions.answer.strip().lower()
+#                 user_answer = answer.typed_answer.strip().lower()
+#                 if correct_answer == user_answer:
+#                     score += answer.questions.score
+
+#         attempt_number = QuizAttempt.objects.filter(user=request.user, quiz=quiz).count()
+#         max_attempts = quiz.max_attempts
+
+#         if attempt_number > max_attempts:
+#             messages.error(request, "You have reached the maximum number of attempts for this quiz.")
+#             return render(request, 'home/quiz_result.html', {
+#                 'quiz': quiz,
+#                 'score': score,
+#                 'attempt_number': attempt_number,
+#                 'max_attempts_reached': True,
+#             })
+
+#         return render(request, 'home/quiz_result.html', {
+#             'quiz': quiz,
+#             'score': score,
+#             'attempt_number': attempt_number,
+#             'max_attempts_reached': False,
+#         })
+    
+#     except Exception as e:
+#         logger.error(f"Error in quiz_result view: {e}")
+#         messages.error(request, "An error occurred while processing your result. Please try again.")
+#         return redirect('quiz_list')
+    
+@login_required
+def quiz_result(request, id):
+    try:
+        quiz = get_object_or_404(Quiz, id=id)
+
+        quiz_attempts = QuizAttempt.objects.filter(quiz=quiz, user=request.user, status='COMPLETED').order_by('-completed_at')
+
+        if not quiz_attempts.exists():
+            messages.error(request, "No completed attempts found for this quiz.")
+            return redirect('quiz_list')
+
+        quiz_attempt = quiz_attempts.first() 
+        score = quiz_attempt.score #retrive the score form quizattempt model
+
+        attempt_number = QuizAttempt.objects.filter(user=request.user, quiz=quiz).count()
+        max_attempts = quiz.max_attempts
+
+        if attempt_number > max_attempts:
+            messages.error(request, "You have reached the maximum number of attempts for this quiz.")
+            return render(request, 'home/quiz_result.html', {
+                'quiz': quiz,
+                'score': score,
+                'attempt_number': attempt_number,
+                'max_attempts_reached': True,
+            })
+
+        return render(request, 'home/quiz_result.html', {
+            'quiz': quiz,
+            'score': score,
+            'attempt_number': attempt_number,
+            'max_attempts_reached': False,
+        })
+
+    except Exception as e:
+        logger.error(f"Error in quiz_result view: {e}")
+        messages.error(request, "An error occurred while processing your result. Please try again.")
+        return redirect('quiz_list')
 
 
 @login_required

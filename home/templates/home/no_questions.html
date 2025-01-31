@@ -1,0 +1,17 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>No Questions</title>
+    <link rel="stylesheet" href="{% static 'css/no_questions.css' %}">
+</head>
+<body>
+    <h2>{{ quiz.name }} - No Questions</h2>
+    <p>This quiz does not contain any questions. Please select another quiz to take.</p>
+    <a href="{% url 'quiz_list' %}">
+        <button>Go Back to Quiz List</button>
+    </a>
+</body>
+</html>
